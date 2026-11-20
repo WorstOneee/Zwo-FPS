@@ -54,6 +54,26 @@ pelo `EntityRemoveEvent`.
 
 `%zwofps_mode%`, `%zwofps_profile%`, `%zwofps_hidden%`, `%zwofps_send_distance%`
 
+## Ícones do menu (resource pack)
+
+![Ícones](docs/icons-preview.png)
+
+A pasta [`resourcepack/`](resourcepack) tem ícones próprios em pixel art 16×16 para o menu
+(formato 75, Minecraft 1.21.11), usando o componente `item_model`:
+
+1. Envie a pack para os jogadores (server.properties, ou junte a pasta `assets/zwofps` na pack
+   que você já usa com ItemsAdder, Nexo, CraftEngine etc.).
+2. Na `config.yml`, ligue `menu.resource-pack-icons: true`.
+
+Sem a pack, deixe `false`: o menu usa itens vanilla. Cada perfil tem seu `item-model` e os botões
+fixos ficam em `menu.item-models`, então dá para trocar qualquer ícone.
+
+Os desenhos são gerados por [`tools/draw_icons.py`](tools/draw_icons.py) (Python + Pillow):
+
+```
+python tools/draw_icons.py resourcepack/assets/zwofps/textures/item docs/icons-preview.png
+```
+
 ## Configuração
 
 Tudo em `config.yml`: categorias (quais `EntityType` entram em cada grupo), perfis (send distance,

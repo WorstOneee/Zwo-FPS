@@ -102,6 +102,7 @@ categories:
 # Categorias ausentes no perfil nao sao tocadas.
 profiles:
   leve:
+    item-model: "zwofps:leve"
     name: "<green>Leve"
     icon: LIME_DYE
     description:
@@ -119,6 +120,7 @@ profiles:
       animals: {hide-beyond: 32, max-visible: 30}
       villagers: {hide-beyond: 32, max-visible: 15}
   medio:
+    item-model: "zwofps:medio"
     name: "<yellow>Médio"
     icon: YELLOW_DYE
     description:
@@ -135,6 +137,7 @@ profiles:
       animals: {hide-beyond: 48, max-visible: 60}
       villagers: {hide-beyond: 48, max-visible: 30}
   pvp:
+    item-model: "zwofps:pvp"
     name: "<red>PvP"
     icon: IRON_SWORD
     description:
@@ -172,3 +175,16 @@ messages:
 
 menu:
   title: "<dark_purple><bold>Zwo FPS"
+  # Icones desenhados para o menu (pasta resourcepack/ do projeto).
+  # So ative se TODOS os jogadores recebem a resource pack (server.properties, ItemsAdder, Nexo, CraftEngine...).
+  # Sem a pack o cliente mostra o cubo roxo/preto no lugar do icone.
+  resource-pack-icons: false
+  # Botoes fixos. Os perfis usam o "item-model" de cada perfil.
+  item-models:
+    auto: "zwofps:auto"
+    "off": "zwofps:off"
+    status: "zwofps:status"
+    rain-on: "zwofps:rain_on"
+    rain-off: "zwofps:rain_off"
+    tips: "zwofps:tips"
+    area: "zwofps:area"

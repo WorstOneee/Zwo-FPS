@@ -2,6 +2,7 @@ package br.com.zwo.fps.config;
 
 import com.destroystokyo.paper.ClientOption;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
@@ -32,7 +33,7 @@ public final class FpsConfig {
         }
     }
 
-    public record Profile(String id, String displayName, Material icon, List<String> description,
+    public record Profile(String id, String displayName, Material icon, NamespacedKey itemModel, List<String> description,
                           int sendViewDistance, boolean clearWeather, Rule[] rules) {
         public boolean hasCulling() {
             for (Rule rule : rules) {
@@ -67,6 +68,8 @@ public final class FpsConfig {
     private Map<String, Profile> profiles;
     private ConfigurationSection messages;
     private String menuTitle;
+    private boolean resourcePackIcons;
+    private Map<String, NamespacedKey> menuModels;
 
     private FpsConfig() {}
 
@@ -122,6 +125,18 @@ public final class FpsConfig {
 
         cfg.messages = c.getConfigurationSection("messages");
         cfg.menuTitle = c.getString("menu.title", "<dark_purple><bold>Zwo FPS");
+        cfg.resourcePackIcons = c.getBoolean("menu.resource-pack-icons", false);
+        Map<String, NamespacedKey> models = new LinkedHashMap<>();
+        ConfigurationSection modelSection = c.getConfigurationSection("menu.item-models");
+        if (modelSection != null) {
+            for (String k : modelSection.getKeys(false)) {
+                NamespacedKey nk = key(modelSection.getString(k), log);
+                // YAML 1.1 reads an unquoted "off:" key as the boolean false.
+                String button = k.equalsIgnoreCase("false") ? FpsConfig.MODE_OFF : k.toLowerCase(Locale.ROOT);
+                if (nk != null) models.put(button, nk);
+            }
+        }
+        cfg.menuModels = Collections.unmodifiableMap(models);
         return cfg;
     }
 
@@ -197,7 +212,7 @@ public final class FpsConfig {
                 int send = s.getInt("send-view-distance", 0);
                 send = send <= 0 ? -1 : (int) clamp(send, 2, 32);
                 map.put(id, new Profile(id, s.getString("name", id), material(s.getString("icon"), Material.PAPER),
-                        List.copyOf(s.getStringList("description")), send, s.getBoolean("clear-weather", false), rules));
+                        key(s.getString("item-model"), log), List.copyOf(s.getStringList("description")), send, s.getBoolean("clear-weather", false), rules));
             }
         }
         cfg.profiles = Collections.unmodifiableMap(map);
@@ -210,6 +225,13 @@ public final class FpsConfig {
         } catch (IllegalArgumentException ex) {
             return null;
         }
+    }
+
+    private static NamespacedKey key(String raw, Logger log) {
+        if (raw == null || raw.isBlank()) return null;
+        NamespacedKey k = NamespacedKey.fromString(raw.trim().toLowerCase(Locale.ROOT));
+        if (k == null) log.warning("item-model invalido: " + raw + " (use namespace:caminho)");
+        return k;
     }
 
     private static Material material(String raw, Material def) {
@@ -274,4 +296,14 @@ public final class FpsConfig {
     public boolean skipWithPassengers() { return skipWithPassengers; }
     public ConfigurationSection messages() { return messages; }
     public String menuTitle() { return menuTitle; }
+    public boolean resourcePackIcons() { return resourcePackIcons; }
+
+    /** Item model for a menu button, or null when resource-pack icons are off or not configured. */
+    public NamespacedKey menuModel(String button) {
+        return resourcePackIcons ? menuModels.get(button) : null;
+    }
+
+    public NamespacedKey profileModel(Profile profile) {
+        return resourcePackIcons ? profile.itemModel() : null;
+    }
 }

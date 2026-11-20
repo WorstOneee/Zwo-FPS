@@ -7,6 +7,7 @@ import br.com.zwo.fps.util.Text;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -63,12 +64,12 @@ public final class FpsMenu implements Listener {
 
         inv.setItem(SLOT_STATUS, statusItem(player, state, cfg, current));
         boolean showRain = plugin.prefs().showRain(player);
-        inv.setItem(SLOT_RAIN, item(showRain ? Material.WATER_BUCKET : Material.BUCKET,
+        inv.setItem(SLOT_RAIN, item(showRain ? Material.WATER_BUCKET : Material.BUCKET, cfg.menuModel(showRain ? "rain-on" : "rain-off"),
                 showRain ? "<aqua>Chuva: <white>visível" : "<aqua>Chuva: <white>escondida",
                 List.of("<gray>Chuva e neve geram muitas", "<gray>partículas. Os perfis escondem", "<gray>por padrão.", "", "<yellow>Clique para alternar"), false));
-        inv.setItem(SLOT_TIPS, item(Material.BOOK, "<gold>Dicas para o seu PC",
+        inv.setItem(SLOT_TIPS, item(Material.BOOK, cfg.menuModel("tips"), "<gold>Dicas para o seu PC",
                 List.of("<gray>Dicas baseadas no seu client", "<gray>e nas suas configurações.", "", "<yellow>Clique para ver"), false));
-        inv.setItem(SLOT_AREA, item(Material.SPYGLASS, "<light_purple>O que tem por perto",
+        inv.setItem(SLOT_AREA, item(Material.SPYGLASS, cfg.menuModel("area"), "<light_purple>O que tem por perto",
                 List.of("<gray>Mostra as entidades ao redor", "<gray>e quantas estão escondidas", "<gray>para você.", "", "<yellow>Clique para ver"), false));
         player.openInventory(inv);
     }
@@ -77,13 +78,16 @@ public final class FpsMenu implements Listener {
         List<String> lore = new ArrayList<>();
         String name;
         Material icon;
+        NamespacedKey model;
         if (mode.equals(FpsConfig.MODE_OFF)) {
             name = "<red>Desligado";
             icon = Material.BARRIER;
+            model = cfg.menuModel("off");
             lore.add("<gray>Tudo normal, sem otimização.");
         } else if (mode.equals(FpsConfig.MODE_AUTO)) {
             name = "<aqua>Automático";
             icon = Material.COMPARATOR;
+            model = cfg.menuModel("auto");
             lore.add("<gray>Escolhe o perfil pelo render");
             lore.add("<gray>distance e partículas do seu jogo.");
             lore.add("<gray>Se o seu jogo está no alto, não");
@@ -92,6 +96,7 @@ public final class FpsMenu implements Listener {
             FpsConfig.Profile p = cfg.profile(mode);
             name = p.displayName();
             icon = p.icon();
+            model = cfg.profileModel(p);
             lore.addAll(p.description());
             lore.add("");
             lore.add("<dark_gray>Chunks enviados: <gray>" + (p.sendViewDistance() > 0 ? p.sendViewDistance() : "padrão"));
@@ -99,7 +104,7 @@ public final class FpsMenu implements Listener {
         }
         lore.add("");
         lore.add(active ? "<green>✔ Selecionado" : "<yellow>Clique para usar");
-        return item(icon, name, lore, active);
+        return item(icon, model, name, lore, active);
     }
 
     private ItemStack statusItem(Player player, PlayerState state, FpsConfig cfg, String mode) {
@@ -110,12 +115,13 @@ public final class FpsMenu implements Listener {
         lore.add("<gray>Chunks enviados: <white>" + (state.appliedSendDistance() > 0 ? state.appliedSendDistance() : "padrão do servidor"));
         lore.add("<gray>Entidades escondidas: <white>" + state.hiddenCount());
         if (cfg.isWorldDisabled(player.getWorld().getName())) lore.add("<yellow>Este mundo está desativado.");
-        return item(Material.PLAYER_HEAD, "<white>Seu status", lore, false);
+        return item(Material.PLAYER_HEAD, cfg.menuModel("status"), "<white>Seu status", lore, false);
     }
 
-    private static ItemStack item(Material material, String name, List<String> lore, boolean glow) {
+    private static ItemStack item(Material material, NamespacedKey model, String name, List<String> lore, boolean glow) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
+        if (model != null) meta.setItemModel(model);
         meta.displayName(Text.item(name));
         List<Component> lines = new ArrayList<>();
         for (String l : lore) lines.add(Text.item(l));
