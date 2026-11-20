@@ -1,0 +1,174 @@
+# =====================================================================
+#  Zwo FPS - config.yml
+# ---------------------------------------------------------------------
+#  O servidor NAO consegue medir o FPS do jogador. O que ele consegue e
+#  mandar MENOS coisa para o cliente renderizar:
+#    - menos chunks (send-view-distance por jogador);
+#    - menos entidades decorativas/acumuladas longe do jogador (culling);
+#    - sem chuva/neve (particulas de clima).
+#  Nada aqui muda o mundo, mobs, farms ou o ticking do servidor.
+#  Limpeza de entidades e controle de IA ficam com o ClearLag.
+#  Textos usam MiniMessage: https://docs.advntr.dev/minimessage/format
+# =====================================================================
+
+# Modo de quem nunca escolheu: off, auto ou o id de um perfil (leve, medio, pvp...).
+# "auto" so ativa algo para quem ja usa render distance/particulas baixas no cliente.
+default-mode: auto
+
+# Mundos onde o plugin nao atua (o jogador volta ao normal ao entrar neles).
+disabled-worlds: []
+
+view:
+  # Controla quantos chunks o servidor ENVIA ao jogador (Player#setSendViewDistance).
+  # Nao altera view-distance de carregamento nem simulation-distance.
+  manage-send-distance: true
+
+culling:
+  # A cada quantos ticks cada jogador e reavaliado (40 = 2s).
+  scan-interval-ticks: 40
+  # Raio horizontal da busca (deixe >= entity-tracking-range do spigot.yml, padrao 128 p/ displays).
+  scan-radius: 128
+  # Altura (para cima e para baixo) da busca. Entidades fora dela ficam como estao.
+  scan-height: 64
+  # Limites para nao pesar o servidor: jogadores avaliados por tick e tempo maximo por tick.
+  max-players-per-tick: 4
+  max-millis-per-tick: 2.0
+  # Se o MSPT medio passar disso, o intervalo de scan dobra.
+  slow-down-if-mspt-above: 45.0
+  # Dentro deste raio NADA e escondido (e onde o jogador interage com molduras, NPCs, itens).
+  always-visible-radius: 8
+  # Margem para evitar pisca-pisca quando a entidade esta na borda do limite.
+  hysteresis-blocks: 4
+
+auto:
+  # Modo "auto": escolhe o perfil a partir do que o cliente informa.
+  leve:
+    max-client-view-distance: 5
+    particles: [MINIMAL]
+  medio:
+    max-client-view-distance: 8
+    particles: [DECREASED]
+  # Se nenhuma regra bater, o jogador fica sem otimizacao.
+
+# Aviso no login para quem parece ter PC fraco e esta com o modo desligado/sem efeito.
+low-end-hint:
+  enabled: true
+  cooldown-hours: 24
+  max-client-view-distance: 8
+
+protection:
+  # Nunca esconder entidades com estas scoreboard tags (/tag @e add zwofps_keep).
+  scoreboard-tags: [zwofps_keep, important_visual]
+  # Nunca esconder se o nome customizado OU o texto do TextDisplay contiver (sem diferenciar maiusculas).
+  name-contains: [NPC, LOJA, QUEST, IMPORTANTE]
+  # Nunca esconder entidades que estao carregando passageiros (ex: cavalo com jogador).
+  skip-with-passengers: true
+
+# Grupos de entidades que os perfis podem esconder.
+# PLAYER nunca e aceito. Mobs hostis e projeteis ficam de fora por padrao (justica no PvE/PvP).
+categories:
+  displays:
+    name: "<aqua>Displays decorativos"
+    icon: ITEM_FRAME
+    types: [ITEM_DISPLAY, BLOCK_DISPLAY]
+  holograms:
+    name: "<yellow>Hologramas (TextDisplay)"
+    icon: OAK_SIGN
+    types: [TEXT_DISPLAY]
+  frames:
+    name: "<gold>Molduras e pinturas"
+    icon: PAINTING
+    types: [ITEM_FRAME, GLOW_ITEM_FRAME, PAINTING]
+  armor-stands:
+    name: "<white>Armor stands"
+    icon: ARMOR_STAND
+    types: [ARMOR_STAND]
+  dropped-items:
+    name: "<green>Itens e XP no chão"
+    icon: HOPPER
+    types: [ITEM, EXPERIENCE_ORB]
+  animals:
+    name: "<light_purple>Animais (farms)"
+    icon: WHEAT
+    types: [COW, SHEEP, PIG, CHICKEN, RABBIT, MOOSHROOM, GOAT, HORSE, DONKEY, MULE, LLAMA, CAMEL, TURTLE, FROG, ARMADILLO, SNIFFER, BEE]
+  villagers:
+    name: "<dark_green>Aldeões"
+    icon: EMERALD
+    types: [VILLAGER]
+
+# Perfis. Em cada categoria:
+#   hide-beyond: esconde o que estiver mais longe que X blocos (0 = sem limite de distancia)
+#   max-visible: mostra no maximo N (os mais proximos) dessa categoria (0 = sem limite)
+# Categorias ausentes no perfil nao sao tocadas.
+profiles:
+  leve:
+    name: "<green>Leve"
+    icon: LIME_DYE
+    description:
+      - "<gray>Para PC fraco."
+      - "<gray>Menos chunks, sem chuva e só"
+      - "<gray>a decoração mais próxima."
+    send-view-distance: 6
+    clear-weather: true
+    culling:
+      displays: {hide-beyond: 32, max-visible: 60}
+      holograms: {hide-beyond: 32, max-visible: 25}
+      frames: {hide-beyond: 24, max-visible: 40}
+      armor-stands: {hide-beyond: 24, max-visible: 25}
+      dropped-items: {hide-beyond: 16, max-visible: 40}
+      animals: {hide-beyond: 32, max-visible: 30}
+      villagers: {hide-beyond: 32, max-visible: 15}
+  medio:
+    name: "<yellow>Médio"
+    icon: YELLOW_DYE
+    description:
+      - "<gray>Equilibrado: corta excesso"
+      - "<gray>de decoração e farms grandes."
+    send-view-distance: 8
+    clear-weather: true
+    culling:
+      displays: {hide-beyond: 48, max-visible: 120}
+      holograms: {hide-beyond: 48, max-visible: 50}
+      frames: {hide-beyond: 32, max-visible: 80}
+      armor-stands: {hide-beyond: 32, max-visible: 50}
+      dropped-items: {hide-beyond: 24, max-visible: 80}
+      animals: {hide-beyond: 48, max-visible: 60}
+      villagers: {hide-beyond: 48, max-visible: 30}
+  pvp:
+    name: "<red>PvP"
+    icon: IRON_SWORD
+    description:
+      - "<gray>Corta decoração, mas mantém"
+      - "<gray>itens no chão até 32 blocos"
+      - "<gray>(loot) e nunca esconde mobs."
+    send-view-distance: 8
+    clear-weather: true
+    culling:
+      displays: {hide-beyond: 24, max-visible: 40}
+      holograms: {hide-beyond: 32, max-visible: 25}
+      frames: {hide-beyond: 24, max-visible: 30}
+      armor-stands: {hide-beyond: 24, max-visible: 25}
+      dropped-items: {hide-beyond: 32, max-visible: 0}
+      animals: {hide-beyond: 32, max-visible: 30}
+      villagers: {hide-beyond: 32, max-visible: 15}
+
+messages:
+  prefix: "<dark_purple><bold>ZWO FPS</bold></dark_purple> <dark_gray>»</dark_gray> "
+  no-permission: "<red>Você não tem permissão para isso."
+  only-player: "<red>Esse comando só pode ser usado por jogador."
+  player-not-found: "<red>Jogador não encontrado ou offline."
+  unknown-mode: "<red>Modo desconhecido. Use: <white><modes></white>"
+  reloaded: "<green>Configuração recarregada."
+  mode-set: "<green>Modo FPS: <white><mode></white><green>."
+  mode-off: "<gray>Modo FPS desligado. Tudo voltou ao normal."
+  mode-auto-active: "<aqua>Modo automático: aplicando <white><profile></white> <aqua>pelas configurações do seu jogo."
+  mode-auto-idle: "<aqua>Modo automático ativado. <gray>Seu jogo está com configurações altas, então nada foi alterado agora; se você baixar o render distance ou as partículas, ele ajusta sozinho."
+  world-disabled: "<yellow>O Zwo FPS não atua neste mundo."
+  rain-on: "<gray>Chuva <white>visível</white> para você."
+  rain-off: "<gray>Chuva <white>escondida</white> para você (quando o perfil permite)."
+  area-cooldown: "<red>Espere alguns segundos para usar de novo."
+  admin-set: "<green>Modo de <white><player></white> definido como <white><mode></white>."
+  low-end-hint: "<gray>Seu jogo parece estar no modo econômico. <click:run_command:'/fps auto'><hover:show_text:'<green>Clique para ativar'><green><bold>[Ativar Zwo FPS]</bold></green></hover></click> <gray>ou use <white>/fps</white>."
+
+menu:
+  title: "<dark_purple><bold>Zwo FPS"

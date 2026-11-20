@@ -1,0 +1,28 @@
+name: ZwoFPS
+version: '${project.version}'
+main: br.com.zwo.fps.ZwoFPS
+api-version: '1.21.11'
+author: Zwo
+website: https://github.com/WorstOneee/Zwo-FPS
+description: Ajuda o FPS do jogador reduzindo o que o servidor envia para o cliente.
+softdepend: [PlaceholderAPI]
+folia-supported: false
+
+commands:
+  fps:
+    description: Abre o menu do Zwo FPS ou troca de modo.
+    usage: /fps [menu|<modo>|auto|off|status|dicas|area|chuva]
+    permission: zwofps.use
+    aliases: [modofps, zwofpsmenu]
+  zwofps:
+    description: Administração do Zwo FPS.
+    usage: /zwofps [reload|stats|check|set|hotspots]
+    permission: zwofps.admin
+
+permissions:
+  zwofps.use:
+    description: Usar o /fps.
+    default: true
+  zwofps.admin:
+    description: Comandos de administração do Zwo FPS.
+    default: op
