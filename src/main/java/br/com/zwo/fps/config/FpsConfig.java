@@ -127,7 +127,9 @@ public final class FpsConfig {
         cfg.messages = c.getConfigurationSection("messages");
         cfg.menuTitle = c.getString("menu.title", "<dark_purple><bold>Zwo FPS");
         cfg.resourcePackIcons = c.getBoolean("menu.resource-pack-icons", false);
-        cfg.menuTitlePack = c.getString("menu.title-with-pack", "");
+        // Old configs lack this key: fall back to the banner so updating the jar is enough.
+        cfg.menuTitlePack = c.getString("menu.title-with-pack",
+                "<white><font:zwofps:menu></font><bold>Zwo FPS");
         Map<String, NamespacedKey> models = new LinkedHashMap<>();
         ConfigurationSection modelSection = c.getConfigurationSection("menu.item-models");
         if (modelSection != null) {
