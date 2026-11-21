@@ -1,90 +1,96 @@
 # Zwo FPS
 
-Plugin para **Paper 1.21.11** que ajuda o FPS dos jogadores de PC fraco reduzindo o que o
-servidor **envia** para o cliente: menos chunks, menos entidades acumuladas e sem chuva.
-Não mexe no mundo, nos mobs, nas farms nem no ticking do servidor.
+A **Paper 1.21.11** plugin that helps players on low-end PCs get more FPS by reducing what the
+server **sends** to the client: fewer chunks, fewer piled-up entities and no rain.
+It does not touch the world, mobs, farms or server ticking.
 
-> O servidor não consegue medir o FPS do jogador. Por isso o Zwo FPS atua só no que
-> comprovadamente pesa na renderização do cliente e pode ser controlado sem mods.
+> The server cannot measure a player's FPS. That is why Zwo FPS only acts on things that
+> demonstrably weigh on client rendering and can be controlled without mods.
 
-## O que ele faz
+## What it does
 
-| Recurso | Como funciona |
+| Feature | How it works |
 |---|---|
-| **Chunks enviados por jogador** | `Player#setSendViewDistance`: o cliente só renderiza o que recebe. Não altera a view-distance de carregamento nem a simulation-distance, então farms, spawn e redstone continuam iguais. |
-| **Culling por distância + orçamento** | Por categoria (displays, hologramas, molduras, armor stands, itens no chão, animais, aldeões): esconde o que está além de `hide-beyond` blocos e mantém visíveis só os `max-visible` mais próximos. Perto do jogador (`always-visible-radius`) nada some, porque é ali que ele interage. |
-| **Modo automático de verdade** | Lê o render distance e a opção de partículas que o próprio cliente informa (`ClientOption`). Se o jogador baixa as configurações, o perfil se ajusta na hora; com o jogo no alto, nada muda. |
-| **Clima limpo** | Esconde chuva/neve (muitas partículas) por jogador. Cada um pode reativar no menu. |
-| **Proteções** | Nunca esconde jogadores, entidades com scoreboard tag `zwofps_keep`, entidades com passageiros, nem nomes/textos de TextDisplay que contenham `NPC`, `LOJA`, `QUEST`... |
-| **Dicas pelo client** | `/fps dicas` usa a brand do cliente (vanilla, Fabric, Forge, Lunar...) e as opções dele para sugerir o que realmente dá FPS (ex.: Sodium para quem joga vanilla). |
-| **Aviso de PC fraco** | No login, quem está com render distance/partículas baixas e o modo sem efeito recebe um botão clicável para ativar (com cooldown). |
-| **Hotspots para a staff** | `/zwofps hotspots` lista os chunks carregados com mais entidades e tile entities, com teleporte por clique. |
+| **Per-player sent chunks** | `Player#setSendViewDistance`: the client only renders what it receives. It does not change the loading view-distance or the simulation-distance, so farms, spawning and redstone keep working the same. |
+| **Distance + budget culling** | Per category (displays, holograms, frames, armor stands, dropped items, animals, villagers): hides whatever is farther than `hide-beyond` blocks and keeps only the `max-visible` closest ones visible. Near the player (`always-visible-radius`) nothing disappears, because that is where they interact. |
+| **A real automatic mode** | Reads the render distance and particle setting the client itself reports (`ClientOption`). If the player lowers their settings, the profile adjusts instantly; with the game on high settings, nothing changes. |
+| **Clear weather** | Hides rain/snow (lots of particles) per player. Each player can turn it back on in the menu. |
+| **Protections** | Never hides players, entities with the `zwofps_keep` scoreboard tag, entities carrying passengers, or names/TextDisplay texts containing `NPC`, `LOJA`, `QUEST`... |
+| **Client-aware tips** | `/fps dicas` uses the client brand (vanilla, Fabric, Forge, Lunar...) and its options to suggest what actually gives FPS (e.g. Sodium for vanilla players). |
+| **Low-end PC hint** | On login, players with low render distance/particles and no active mode get a clickable button to enable it (with a cooldown). |
+| **Hotspots for staff** | `/zwofps hotspots` lists the loaded chunks with the most entities and tile entities, with click-to-teleport. |
 
-Preferências ficam no **PersistentDataContainer** do jogador (salvas junto com os dados dele,
-sem arquivo extra e sem IO na thread principal).
+Preferences are stored in the player's **PersistentDataContainer** (saved with their player data,
+no extra files and no IO on the main thread).
 
 ## ClearLag
 
-O Zwo FPS **não remove entidades e não mexe em IA**. Isso é carga do servidor e já é o papel do
-ClearLag. Os dois atuam em camadas diferentes:
+Zwo FPS **does not remove entities and does not touch AI**. That is server load and already
+ClearLag's job. The two work on different layers:
 
-- **ClearLag:** remove/limita entidades e controla IA (menos trabalho para o servidor).
-- **Zwo FPS:** decide o que cada cliente recebe e renderiza (menos trabalho para o PC do jogador).
+- **ClearLag:** removes/limits entities and controls AI (less work for the server).
+- **Zwo FPS:** decides what each client receives and renders (less work for the player's PC).
 
-Quando o ClearLag remove algo que estava escondido para alguém, o Zwo FPS limpa o próprio estado
-pelo `EntityRemoveEvent`.
+When ClearLag removes something that was hidden for someone, Zwo FPS cleans up its own state
+through `EntityRemoveEvent`.
 
-## Comandos
+## Commands
 
-| Comando | Permissão | Descrição |
+| Command | Permission | Description |
 |---|---|---|
-| `/fps` | `zwofps.use` (todos) | Abre o menu |
-| `/fps <leve\|medio\|pvp\|auto\|off>` | `zwofps.use` | Troca o modo |
-| `/fps status` | `zwofps.use` | Perfil aplicado, chunks enviados, entidades escondidas por categoria |
-| `/fps dicas` | `zwofps.use` | Dicas pelo client e pelas configurações do jogador |
-| `/fps area` | `zwofps.use` | Entidades num raio de 64 blocos e quantas estão escondidas pra você |
-| `/fps chuva` | `zwofps.use` | Mostra/esconde a chuva |
-| `/zwofps stats` | `zwofps.admin` | Modos em uso, total escondido, custo médio do scan, MSPT |
-| `/zwofps check <jogador>` | `zwofps.admin` | Status e client do jogador |
-| `/zwofps set <jogador> <modo>` | `zwofps.admin` | Troca o modo de alguém |
-| `/zwofps hotspots [mundo] [qtd]` | `zwofps.admin` | Chunks mais pesados |
-| `/zwofps reload` | `zwofps.admin` | Recarrega a config |
+| `/fps` | `zwofps.use` (everyone) | Opens the menu |
+| `/fps <leve\|medio\|pvp\|auto\|off>` | `zwofps.use` | Changes the mode |
+| `/fps status` | `zwofps.use` | Applied profile, sent chunks, hidden entities per category |
+| `/fps dicas` | `zwofps.use` | Tips based on the player's client and settings |
+| `/fps area` | `zwofps.use` | Entities within 64 blocks and how many are hidden for you |
+| `/fps chuva` | `zwofps.use` | Shows/hides rain |
+| `/zwofps stats` | `zwofps.admin` | Modes in use, total hidden, average scan cost, MSPT |
+| `/zwofps check <player>` | `zwofps.admin` | A player's status and client |
+| `/zwofps set <player> <mode>` | `zwofps.admin` | Changes someone's mode |
+| `/zwofps hotspots [world] [amount]` | `zwofps.admin` | Heaviest chunks |
+| `/zwofps reload` | `zwofps.admin` | Reloads the config |
+
+Command arguments and in-game messages are in Portuguese by default; all messages can be changed
+in `config.yml`.
 
 ## PlaceholderAPI
 
 `%zwofps_mode%`, `%zwofps_profile%`, `%zwofps_hidden%`, `%zwofps_send_distance%`
 
-## Ícones do menu (resource pack)
+## Menu icons (resource pack)
 
-![Ícones](docs/icons-preview.png)
+![Icons](docs/icons-preview.png)
 
-A pasta [`resourcepack/`](resourcepack) tem ícones próprios em pixel art 16×16 para o menu
-(formato 75, Minecraft 1.21.11), usando o componente `item_model`:
+The [`resourcepack/`](resourcepack) folder has custom 64×64 icons for the menu
+(pack format 75, Minecraft 1.21.11), using the `item_model` component:
 
-1. Envie a pack para os jogadores (server.properties, ou junte a pasta `assets/zwofps` na pack
-   que você já usa com ItemsAdder, Nexo, CraftEngine etc.).
-2. Na `config.yml`, ligue `menu.resource-pack-icons: true`.
+1. Send the pack to players (server.properties, or merge the `assets/zwofps` folder into the pack
+   you already use with ItemsAdder, Nexo, CraftEngine, etc.).
+2. In `config.yml`, set `menu.resource-pack-icons: true`.
 
-Com a opção ligada, o título do menu também usa `menu.title-with-pack`, que desenha uma faixa
-(fonte `zwofps:menu`) atrás do texto.
+With that option on, the menu title also uses `menu.title-with-pack`, which draws a banner
+(font `zwofps:menu`) behind the text.
 
-Sem a pack, deixe `false`: o menu usa itens vanilla e o título simples. Cada perfil tem seu `item-model` e os botões
-fixos ficam em `menu.item-models`, então dá para trocar qualquer ícone.
+Without the pack, leave it `false`: the menu uses vanilla items and the plain title. Each profile
+has its own `item-model` and the fixed buttons live in `menu.item-models`, so any icon can be
+swapped.
 
-Os desenhos são gerados por [`tools/draw_icons.py`](tools/draw_icons.py) (Python + Pillow):
+The title banner is generated by [`tools/draw_banner.py`](tools/draw_banner.py) (Python + Pillow).
+[`tools/draw_icons.py`](tools/draw_icons.py) draws the original 16×16 pixel-art icons (status still
+uses one of them):
 
 ```
 python tools/draw_icons.py resourcepack/assets/zwofps/textures/item docs/icons-preview.png
 ```
 
-## Configuração
+## Configuration
 
-Tudo em `config.yml`: categorias (quais `EntityType` entram em cada grupo), perfis (send distance,
-clima e regras por categoria), regras do modo automático, proteções, limites de desempenho do scan
-e mensagens em MiniMessage.
+Everything lives in `config.yml`: categories (which `EntityType`s go into each group), profiles
+(send distance, weather and per-category rules), automatic mode rules, protections, scan
+performance limits and MiniMessage messages.
 
-O scan é distribuído entre ticks (`max-players-per-tick`, `max-millis-per-tick`) e o intervalo
-dobra sozinho quando o MSPT passa de `slow-down-if-mspt-above`.
+The scan is spread across ticks (`max-players-per-tick`, `max-millis-per-tick`) and the interval
+doubles automatically when MSPT goes above `slow-down-if-mspt-above`.
 
 ## Build
 
@@ -92,4 +98,4 @@ dobra sozinho quando o MSPT passa de `slow-down-if-mspt-above`.
 ./mvnw package
 ```
 
-O jar sai em `target/ZwoFPS-<versão>.jar`. Requer Java 21 e Paper 1.21.11.
+The jar ends up in `target/ZwoFPS-<version>.jar`. Requires Java 21 and Paper 1.21.11.
