@@ -65,7 +65,10 @@ A pasta [`resourcepack/`](resourcepack) tem ícones próprios em pixel art 16×1
    que você já usa com ItemsAdder, Nexo, CraftEngine etc.).
 2. Na `config.yml`, ligue `menu.resource-pack-icons: true`.
 
-Sem a pack, deixe `false`: o menu usa itens vanilla. Cada perfil tem seu `item-model` e os botões
+Com a opção ligada, o título do menu também usa `menu.title-with-pack`, que desenha uma faixa
+(fonte `zwofps:menu`) atrás do texto.
+
+Sem a pack, deixe `false`: o menu usa itens vanilla e o título simples. Cada perfil tem seu `item-model` e os botões
 fixos ficam em `menu.item-models`, então dá para trocar qualquer ícone.
 
 Os desenhos são gerados por [`tools/draw_icons.py`](tools/draw_icons.py) (Python + Pillow):

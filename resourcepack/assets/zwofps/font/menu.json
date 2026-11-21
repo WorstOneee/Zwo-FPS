@@ -1,0 +1,19 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "zwofps:font/menu_banner.png",
+      "height": 13,
+      "ascent": 10,
+      "chars": [""]
+    },
+    {
+      "type": "space",
+      "advances": {
+        "": -105,
+        "": 1,
+        "": -1
+      }
+    }
+  ]
+}

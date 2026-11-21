@@ -175,6 +175,10 @@ messages:
 
 menu:
   title: "<dark_purple><bold>Zwo FPS"
+  # Titulo usado quando resource-pack-icons esta ligado: desenha a faixa (fonte zwofps:menu)
+  # e escreve o texto por cima. \uE000 = faixa, \uE001 = volta o cursor para centralizar o texto.
+  # Se mudar o texto, ajuste o centro com \uE002 (+1px) ou \uE003 (-1px).
+  title-with-pack: "<white><font:zwofps:menu>\uE000\uE001</font><bold>Zwo FPS"
   # Icones desenhados para o menu (pasta resourcepack/ do projeto).
   # So ative se TODOS os jogadores recebem a resource pack (server.properties, ItemsAdder, Nexo, CraftEngine...).
   # Sem a pack o cliente mostra o cubo roxo/preto no lugar do icone.

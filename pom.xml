@@ -6,7 +6,7 @@
 
   <groupId>br.com.zwo</groupId>
   <artifactId>ZwoFPS</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <packaging>jar</packaging>
   <name>ZwoFPS</name>
   <description>Client-side FPS helper for Paper servers: per-player send distance, distance/budget entity culling and client-aware auto mode</description>

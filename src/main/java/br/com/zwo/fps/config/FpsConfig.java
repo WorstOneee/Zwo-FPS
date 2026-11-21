@@ -68,6 +68,7 @@ public final class FpsConfig {
     private Map<String, Profile> profiles;
     private ConfigurationSection messages;
     private String menuTitle;
+    private String menuTitlePack;
     private boolean resourcePackIcons;
     private Map<String, NamespacedKey> menuModels;
 
@@ -126,6 +127,7 @@ public final class FpsConfig {
         cfg.messages = c.getConfigurationSection("messages");
         cfg.menuTitle = c.getString("menu.title", "<dark_purple><bold>Zwo FPS");
         cfg.resourcePackIcons = c.getBoolean("menu.resource-pack-icons", false);
+        cfg.menuTitlePack = c.getString("menu.title-with-pack", "");
         Map<String, NamespacedKey> models = new LinkedHashMap<>();
         ConfigurationSection modelSection = c.getConfigurationSection("menu.item-models");
         if (modelSection != null) {
@@ -295,7 +297,10 @@ public final class FpsConfig {
     public List<String> protectedNames() { return protectedNames; }
     public boolean skipWithPassengers() { return skipWithPassengers; }
     public ConfigurationSection messages() { return messages; }
-    public String menuTitle() { return menuTitle; }
+    /** Title with the resource-pack banner when pack icons are on, plain title otherwise. */
+    public String menuTitle() {
+        return resourcePackIcons && menuTitlePack != null && !menuTitlePack.isBlank() ? menuTitlePack : menuTitle;
+    }
     public boolean resourcePackIcons() { return resourcePackIcons; }
 
     /** Item model for a menu button, or null when resource-pack icons are off or not configured. */
