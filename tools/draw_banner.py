@@ -1,44 +1,60 @@
-# Banner for the /fps title: drawn on a 160x13 GUI-pixel grid at 2x (320x26).
+# Title banner for the /fps menu (font zwofps:menu, char ).
+# Drawn 1:1 on the GUI pixel grid: 160x13. Font glyphs must fit the client's 256x256 font
+# atlas, so the texture must stay narrower than 256 px.
+# Usage: python tools/draw_banner.py <out_png> [preview_png]
 import sys
 from PIL import Image, ImageDraw
-W, H, K = 160, 13, 2
-img = Image.new('RGBA', (W*K, H*K), (0,0,0,0))
+
+W, H = 160, 13
+img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 d = ImageDraw.Draw(img)
-def px(x, y, c, w=1, h=1):  # half-pixel units (2x grid)
-    d.rectangle([x, y, x+w-1, y+h-1], fill=c)
-G = W*K; HH = H*K
-outline = (24, 8, 38, 255)
-top, bot = (120, 52, 170), (58, 20, 92)
-# body with cut corners (chamfer 3 half-px)
-for y in range(HH):
-    t = y/(HH-1)
-    col = tuple(int(top[i]*(1-t) + bot[i]*t) for i in range(3)) + (255,)
-    ins = max(0, 4 - y, y - (HH-5))
-    px(ins, y, col, G - 2*ins, 1)
+
+OUTLINE = (24, 8, 38, 255)
+TOP, BOT = (122, 54, 172), (60, 22, 94)
+HI, LO = (186, 118, 236, 255), (40, 14, 64, 255)
+GOLD, AMBER = (244, 204, 92, 255), (206, 124, 42, 255)
+
+
+def inset(y):  # chamfered corners
+    return max(0, 2 - y, y - (H - 3))
+
+
+# body gradient
+for y in range(H):
+    t = y / (H - 1)
+    col = tuple(int(TOP[i] * (1 - t) + BOT[i] * t) for i in range(3)) + (255,)
+    x0 = inset(y)
+    d.line([(x0, y), (W - 1 - x0, y)], fill=col)
 # outline
-for y in range(HH):
-    ins = max(0, 4 - y, y - (HH-5))
-    px(ins, y, outline, 2); px(G-ins-2, y, outline, 2)
-px(4, 0, outline, G-8, 2); px(4, HH-2, outline, G-8, 2)
-for i in range(4):
-    px(i, 4-i, outline, 2, 1); px(G-2-i, 4-i, outline, 2, 1)
-    px(i, HH-5+i, outline, 2, 1); px(G-2-i, HH-5+i, outline, 2, 1)
-# highlights
-px(6, 2, (190, 120, 240, 255), G-12, 1)
-px(6, HH-3, (36, 12, 60, 255), G-12, 1)
-# speed chevrons at each end
-def chev(x0, flip):
-    c1, c2 = (240, 200, 90, 255), (200, 120, 40, 255)
-    for k in range(3):
-        bx = x0 + (k*9 if not flip else -k*9)
-        for j in range(7):
-            dx = j if j < 4 else 6 - j
-            xx = bx + (dx if not flip else -dx)
-            px(xx, 6 + j*2, c1 if k == 0 else c2, 3, 2)
-chev(12, False); chev(G-15, True)
+for y in range(H):
+    x0 = inset(y)
+    d.point((x0, y), OUTLINE)
+    d.point((W - 1 - x0, y), OUTLINE)
+d.line([(2, 0), (W - 3, 0)], fill=OUTLINE)
+d.line([(2, H - 1), (W - 3, H - 1)], fill=OUTLINE)
+d.point((1, 1), OUTLINE); d.point((W - 2, 1), OUTLINE)
+d.point((1, H - 2), OUTLINE); d.point((W - 2, H - 2), OUTLINE)
+# bevel
+d.line([(3, 1), (W - 4, 1)], fill=HI)
+d.line([(3, H - 2), (W - 4, H - 2)], fill=LO)
+
+
+# speed chevrons at both ends: > > >  ...  < < <
+def chevron(x, flip, col):
+    for j in range(7):  # rows 3..9
+        dx = j if j < 4 else 6 - j
+        xx = x - dx if flip else x + dx
+        d.point((xx, 3 + j), col)
+        d.point((xx + (-1 if flip else 1), 3 + j), col)
+
+
+for k, col in enumerate((GOLD, AMBER, AMBER)):
+    chevron(6 + k * 5, False, col)
+    chevron(W - 7 - k * 5, True, col)
+
 img.save(sys.argv[1])
-# preview at GUI scale 3 over a chest-like background
-bg = Image.new('RGBA', (176*3, 40*3), (198,198,198,255))
-ban = img.resize((W*3, H*3), Image.NEAREST)
-bg.alpha_composite(ban, (8*3, 3*3))
-bg.save(sys.argv[2])
+
+if len(sys.argv) > 2:  # preview over a chest-like background at GUI scale 3
+    bg = Image.new('RGBA', (176 * 3, 22 * 3), (198, 198, 198, 255))
+    bg.alpha_composite(img.resize((W * 3, H * 3), Image.NEAREST), (8 * 3, 3 * 3))
+    bg.save(sys.argv[2])
