@@ -12,7 +12,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** Client-aware tips and local entity census. Everything returns MiniMessage lines. */
+/**
+ * Client-aware tips, the player's own game check-up and the staff-only entity census.
+ * Everything returns MiniMessage lines. Player-facing output never describes the world around
+ * them: entity counts near a player reveal bases and farms.
+ */
 public final class Diagnostics {
     private Diagnostics() {}
 
@@ -70,7 +74,63 @@ public final class Diagnostics {
         return lines;
     }
 
-    /** Counts entities near the player per culling category and how many we hide for them. */
+    /** Player-only check-up: their own client settings and what the server sends them. No world info. */
+    public static List<String> checkup(Player player, PlayerState state, FpsConfig cfg, ModeService modes, String currentMode) {
+        List<String> lines = new ArrayList<>();
+        String brandRaw = brand(player);
+        String brand = brandRaw.toLowerCase(Locale.ROOT);
+        int clientView = player.getClientViewDistance();
+        ClientOption.ParticleVisibility particles = ModeService.particles(player);
+        int issues = 0;
+
+        boolean vanilla = brand.contains("vanilla");
+        if (vanilla) issues++;
+        lines.add(row("Client", brandRaw, vanilla ? "<red>sem mods de otimização" : "<green>ok"));
+
+        String viewNote;
+        if (clientView <= 0) viewNote = "<gray>?";
+        else if (clientView <= 8) viewNote = "<green>leve";
+        else if (clientView <= 12) viewNote = "<yellow>ok";
+        else { viewNote = "<red>alto"; issues++; }
+        lines.add(row("Render distance", String.valueOf(clientView), viewNote));
+
+        String partNote;
+        if (particles == ClientOption.ParticleVisibility.ALL) { partNote = "<red>pesado"; issues++; }
+        else if (particles == ClientOption.ParticleVisibility.DECREASED) partNote = "<yellow>ok";
+        else if (particles == ClientOption.ParticleVisibility.MINIMAL) partNote = "<green>leve";
+        else partNote = "<gray>?";
+        lines.add(row("Partículas", particlesName(particles), partNote));
+
+        int send = state.appliedSendDistance();
+        lines.add(row("Chunks que o servidor envia", String.valueOf(send > 0 ? send : player.getViewDistance()),
+                send > 0 ? "<green>reduzido pelo Zwo FPS" : "<gray>padrão do servidor"));
+        lines.add(row("Chuva", state.weatherApplied() ? "escondida" : "visível",
+                state.weatherApplied() ? "<green>menos partículas" : "<gray>normal"));
+
+        lines.add(issues == 0 ? "<green>✔ Nada pesado nas suas configurações."
+                : "<yellow>⚠ " + issues + (issues == 1 ? " ponto" : " pontos") + " de atenção acima.");
+
+        FpsConfig.Profile rec = modes.resolveAuto(player, cfg);
+        if (rec == null && issues > 0) rec = cfg.profile("medio");
+        FpsConfig.Profile applied = state.profile();
+        if (rec != null && applied != null && applied.id().equals(rec.id())) {
+            lines.add("<green>✔ Você já está no modo recomendado: " + rec.displayName());
+        } else if (rec != null) {
+            lines.add("<gray>Recomendado: " + rec.displayName() + " <click:run_command:'/fps " + rec.id() + "'>"
+                    + "<hover:show_text:'<green>Clique para aplicar'><green><bold>[Aplicar]</bold></green></hover></click>");
+        } else if (!FpsConfig.MODE_AUTO.equals(currentMode)) {
+            lines.add("<gray>Dica: o modo <aqua>Auto</aqua> ajusta sozinho se você baixar as configurações. "
+                    + "<click:run_command:'/fps auto'><hover:show_text:'<green>Clique para ativar'><green><bold>[Ativar]</bold></green></hover></click>");
+        }
+        lines.add("<click:run_command:'/fps dicas'><hover:show_text:'Ver dicas'><gray>Mais dicas: <yellow><u>/fps dicas</u></yellow></hover></click>");
+        return lines;
+    }
+
+    private static String row(String label, String value, String note) {
+        return "<dark_gray>- <gray>" + label + ": <white>" + value + "</white> <dark_gray>(</dark_gray>" + note + "<dark_gray>)";
+    }
+
+    /** Staff only: counts entities near the player per culling category and how many we hide for them. */
     public static List<String> area(Player player, PlayerState state, FpsConfig cfg, double radius) {
         int n = cfg.categories().size();
         int[] total = new int[n];

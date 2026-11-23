@@ -169,7 +169,6 @@ messages:
   world-disabled: "<yellow>O Zwo FPS não atua neste mundo."
   rain-on: "<gray>Chuva <white>visível</white> para você."
   rain-off: "<gray>Chuva <white>escondida</white> para você (quando o perfil permite)."
-  area-cooldown: "<red>Espere alguns segundos para usar de novo."
   admin-set: "<green>Modo de <white><player></white> definido como <white><mode></white>."
   low-end-hint: "<gray>Seu jogo parece estar no modo econômico. <click:run_command:'/fps auto'><hover:show_text:'<green>Clique para ativar'><green><bold>[Ativar Zwo FPS]</bold></green></hover></click> <gray>ou use <white>/fps</white>."
 
@@ -191,4 +190,4 @@ menu:
     rain-on: "zwofps:rain_on"
     rain-off: "zwofps:rain_off"
     tips: "zwofps:tips"
-    area: "zwofps:area"
+    checkup: "zwofps:checkup"

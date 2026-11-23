@@ -140,6 +140,8 @@ public final class FpsConfig {
                 if (nk != null) models.put(button, nk);
             }
         }
+        // Buttons added after a config was generated still get their icon.
+        models.putIfAbsent("checkup", new NamespacedKey("zwofps", "checkup"));
         cfg.menuModels = Collections.unmodifiableMap(models);
         return cfg;
     }

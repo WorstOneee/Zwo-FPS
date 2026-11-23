@@ -27,7 +27,6 @@ import java.util.TreeMap;
 /** Handles /fps (players) and /zwofps (admin). */
 public final class FpsCommands implements TabExecutor {
     private static final double AREA_RADIUS = 64;
-    private static final long AREA_COOLDOWN_MS = 5_000;
 
     private final ZwoFPS plugin;
 
@@ -57,9 +56,10 @@ public final class FpsCommands implements TabExecutor {
         String sub = args.length == 0 ? "menu" : args[0].toLowerCase(Locale.ROOT);
         switch (sub) {
             case "menu" -> plugin.menu().open(player);
-            case "status" -> sendStatus(player, player);
+            case "status" -> sendStatus(player, player, false);
             case "dicas", "tips" -> sendTips(player);
-            case "area", "área" -> sendArea(player);
+            // "area" used to list nearby entities; it now opens the check-up (no world info for players).
+            case "checkup", "check", "jogo", "area", "área" -> sendCheckup(player);
             case "chuva", "rain" -> toggleRain(player);
             default -> setMode(player, player, normalizeMode(sub));
         }
@@ -116,19 +116,28 @@ public final class FpsCommands implements TabExecutor {
         for (String line : Diagnostics.tips(player, state)) player.sendMessage(Text.mm(line));
     }
 
-    public void sendArea(Player player) {
+    public void sendCheckup(Player player) {
         PlayerState state = plugin.modes().state(player);
-        long now = System.currentTimeMillis();
-        if (!player.hasPermission("zwofps.admin") && now - state.lastAreaCommand() < AREA_COOLDOWN_MS) {
-            text().send(player, "area-cooldown");
-            return;
+        text().sendRaw(player, "<light_purple><bold>Check-up do seu jogo");
+        for (String line : Diagnostics.checkup(player, state, plugin.cfg(), plugin.modes(), plugin.prefs().mode(player))) {
+            player.sendMessage(Text.mm(line));
         }
-        state.setLastAreaCommand(now);
-        text().sendRaw(player, "<light_purple><bold>O que tem por perto");
-        for (String line : Diagnostics.area(player, state, plugin.cfg(), AREA_RADIUS)) player.sendMessage(Text.mm(line));
     }
 
-    private void sendStatus(CommandSender to, Player target) {
+    /** Staff only: entity census around a player (or the sender). It reveals bases, so never for players. */
+    private void sendArea(CommandSender sender, String[] args) {
+        Player target = args.length > 1 ? Bukkit.getPlayerExact(args[1]) : (sender instanceof Player p ? p : null);
+        if (target == null) {
+            text().send(sender, "player-not-found");
+            return;
+        }
+        PlayerState state = plugin.modes().state(target);
+        text().sendRaw(sender, "<light_purple><bold>Entidades perto de <aqua>" + target.getName());
+        for (String line : Diagnostics.area(target, state, plugin.cfg(), AREA_RADIUS)) sender.sendMessage(Text.mm(line));
+    }
+
+    /** detailed = staff view with hidden-entity counts, which describe the surroundings. */
+    private void sendStatus(CommandSender to, Player target, boolean detailed) {
         PlayerState state = plugin.modes().state(target);
         FpsConfig cfg = plugin.cfg();
         FpsConfig.Profile p = state.profile();
@@ -142,6 +151,7 @@ public final class FpsCommands implements TabExecutor {
         to.sendMessage(Text.mm("<gray>Clima limpo: <white>" + (state.weatherApplied() ? "sim" : "não")
                 + " <dark_gray>|</dark_gray> <gray>Partículas no cliente: <white>" + Diagnostics.particlesName(ModeService.particles(target))
                 + " <dark_gray>|</dark_gray> <gray>Client: <white>" + Diagnostics.brand(target)));
+        if (!detailed) return;
         to.sendMessage(Text.mm("<gray>Entidades escondidas: <white>" + state.hiddenCount()
                 + " <dark_gray>|</dark_gray> <gray>último scan: <white>" + String.format(Locale.ROOT, "%.2f", state.lastScanNanos() / 1_000_000.0) + " ms"));
         int[] hidden = state.hiddenPerCategory();
@@ -170,7 +180,7 @@ public final class FpsCommands implements TabExecutor {
             case "check" -> {
                 Player target = args.length > 1 ? Bukkit.getPlayerExact(args[1]) : null;
                 if (target == null) text().send(sender, "player-not-found");
-                else sendStatus(sender, target);
+                else sendStatus(sender, target, true);
             }
             case "set" -> {
                 Player target = args.length > 1 ? Bukkit.getPlayerExact(args[1]) : null;
@@ -183,11 +193,13 @@ public final class FpsCommands implements TabExecutor {
                 }
             }
             case "hotspots" -> hotspots(sender, args);
+            case "area" -> sendArea(sender, args);
             default -> {
                 text().sendRaw(sender, "<white>Comandos de admin:");
                 sender.sendMessage(Text.mm("<gray>/zwofps stats <dark_gray>- uso e custo do plugin"));
                 sender.sendMessage(Text.mm("<gray>/zwofps check <jogador> <dark_gray>- status e client do jogador"));
                 sender.sendMessage(Text.mm("<gray>/zwofps set <jogador> <modo> <dark_gray>- troca o modo"));
+                sender.sendMessage(Text.mm("<gray>/zwofps area [jogador] <dark_gray>- entidades num raio de 64 blocos"));
                 sender.sendMessage(Text.mm("<gray>/zwofps hotspots [mundo] [qtd] <dark_gray>- chunks com mais entidades/tile entities"));
                 sender.sendMessage(Text.mm("<gray>/zwofps reload"));
             }
@@ -270,8 +282,8 @@ public final class FpsCommands implements TabExecutor {
         List<String> options = new ArrayList<>();
         if (command.getName().equalsIgnoreCase("zwofps")) {
             if (!sender.hasPermission("zwofps.admin")) return List.of();
-            if (args.length == 1) options.addAll(List.of("stats", "check", "set", "hotspots", "reload"));
-            else if (args.length == 2 && (args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("set")))
+            if (args.length == 1) options.addAll(List.of("stats", "check", "set", "area", "hotspots", "reload"));
+            else if (args.length == 2 && (args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("area")))
                 Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
             else if (args.length == 2 && args[0].equalsIgnoreCase("hotspots"))
                 Bukkit.getWorlds().forEach(w -> options.add(w.getName()));
@@ -279,7 +291,7 @@ public final class FpsCommands implements TabExecutor {
         } else if (args.length == 1) {
             options.add("menu");
             options.addAll(plugin.cfg().modeIds());
-            options.addAll(List.of("status", "dicas", "area", "chuva"));
+            options.addAll(List.of("status", "dicas", "checkup", "chuva"));
         }
         String last = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);
         options.removeIf(o -> !o.toLowerCase(Locale.ROOT).startsWith(last));

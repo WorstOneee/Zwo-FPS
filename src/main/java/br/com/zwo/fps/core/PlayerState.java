@@ -19,7 +19,6 @@ public final class PlayerState {
     long lastScanNanos;
     int[] hiddenPerCategory = new int[0];
     int[] seenPerCategory = new int[0];
-    long lastAreaCommand;
 
     PlayerState(UUID playerId) {
         this.playerId = playerId;
@@ -33,6 +32,4 @@ public final class PlayerState {
     public int[] hiddenPerCategory() { return hiddenPerCategory; }
     public int[] seenPerCategory() { return seenPerCategory; }
     public long lastScanNanos() { return lastScanNanos; }
-    public long lastAreaCommand() { return lastAreaCommand; }
-    public void setLastAreaCommand(long millis) { this.lastAreaCommand = millis; }
 }

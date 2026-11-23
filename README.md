@@ -40,15 +40,19 @@ through `EntityRemoveEvent`.
 |---|---|---|
 | `/fps` | `zwofps.use` (everyone) | Opens the menu |
 | `/fps <leve\|medio\|pvp\|auto\|off>` | `zwofps.use` | Changes the mode |
-| `/fps status` | `zwofps.use` | Applied profile, sent chunks, hidden entities per category |
+| `/fps status` | `zwofps.use` | Mode, applied profile, sent chunks, weather and client settings |
 | `/fps dicas` | `zwofps.use` | Tips based on the player's client and settings |
-| `/fps area` | `zwofps.use` | Entities within 64 blocks and how many are hidden for you |
+| `/fps checkup` | `zwofps.use` | Check-up of the player's own game (render distance, particles, client, sent chunks) with a recommended mode |
 | `/fps chuva` | `zwofps.use` | Shows/hides rain |
 | `/zwofps stats` | `zwofps.admin` | Modes in use, total hidden, average scan cost, MSPT |
-| `/zwofps check <player>` | `zwofps.admin` | A player's status and client |
+| `/zwofps check <player>` | `zwofps.admin` | A player's status and client, including hidden entities per category |
+| `/zwofps area [player]` | `zwofps.admin` | Entities within 64 blocks of a player |
 | `/zwofps set <player> <mode>` | `zwofps.admin` | Changes someone's mode |
 | `/zwofps hotspots [world] [amount]` | `zwofps.admin` | Heaviest chunks |
 | `/zwofps reload` | `zwofps.admin` | Reloads the config |
+
+Players never get information about what is around them (entity counts near a player reveal
+bases and farms). That census is staff-only (`/zwofps area`, `/zwofps check`).
 
 Command arguments and in-game messages are in Portuguese by default; all messages can be changed
 in `config.yml`.
@@ -56,6 +60,9 @@ in `config.yml`.
 ## PlaceholderAPI
 
 `%zwofps_mode%`, `%zwofps_profile%`, `%zwofps_hidden%`, `%zwofps_send_distance%`
+
+`%zwofps_hidden%` counts entities hidden around the player, so avoid showing it to players
+(scoreboards, tab) for the same reason.
 
 ## Menu icons (resource pack)
 

@@ -11,7 +11,7 @@ folia-supported: false
 commands:
   fps:
     description: Abre o menu do Zwo FPS ou troca de modo.
-    usage: /fps [menu|<modo>|auto|off|status|dicas|area|chuva]
+    usage: /fps [menu|<modo>|auto|off|status|dicas|checkup|chuva]
     permission: zwofps.use
     aliases: [modofps, zwofpsmenu]
   zwofps:

@@ -29,7 +29,7 @@ public final class FpsMenu implements Listener {
     private static final int SLOT_STATUS = 4;
     private static final int SLOT_RAIN = 21;
     private static final int SLOT_TIPS = 22;
-    private static final int SLOT_AREA = 23;
+    private static final int SLOT_CHECKUP = 23;
 
     private final ZwoFPS plugin;
 
@@ -69,8 +69,8 @@ public final class FpsMenu implements Listener {
                 List.of("<gray>Chuva e neve geram muitas", "<gray>partículas. Os perfis escondem", "<gray>por padrão.", "", "<yellow>Clique para alternar"), false));
         inv.setItem(SLOT_TIPS, item(Material.BOOK, cfg.menuModel("tips"), "<gold>Dicas para o seu PC",
                 List.of("<gray>Dicas baseadas no seu client", "<gray>e nas suas configurações.", "", "<yellow>Clique para ver"), false));
-        inv.setItem(SLOT_AREA, item(Material.SPYGLASS, cfg.menuModel("area"), "<light_purple>O que tem por perto",
-                List.of("<gray>Mostra as entidades ao redor", "<gray>e quantas estão escondidas", "<gray>para você.", "", "<yellow>Clique para ver"), false));
+        inv.setItem(SLOT_CHECKUP, item(Material.WRITABLE_BOOK, cfg.menuModel("checkup"), "<light_purple>Check-up do seu jogo",
+                List.of("<gray>Confere render distance,", "<gray>partículas e client, e diz", "<gray>qual modo combina com você.", "", "<yellow>Clique para ver"), false));
         player.openInventory(inv);
     }
 
@@ -113,7 +113,6 @@ public final class FpsMenu implements Listener {
         lore.add("<gray>Modo: <white>" + mode);
         lore.add("<gray>Perfil aplicado: " + (p == null ? "<white>nenhum" : p.displayName()));
         lore.add("<gray>Chunks enviados: <white>" + (state.appliedSendDistance() > 0 ? state.appliedSendDistance() : "padrão do servidor"));
-        lore.add("<gray>Entidades escondidas: <white>" + state.hiddenCount());
         if (cfg.isWorldDisabled(player.getWorld().getName())) lore.add("<yellow>Este mundo está desativado.");
         return item(Material.PLAYER_HEAD, cfg.menuModel("status"), "<white>Seu status", lore, false);
     }
@@ -154,9 +153,9 @@ public final class FpsMenu implements Listener {
                 player.closeInventory();
                 plugin.commands().sendTips(player);
             }
-            case SLOT_AREA -> {
+            case SLOT_CHECKUP -> {
                 player.closeInventory();
-                plugin.commands().sendArea(player);
+                plugin.commands().sendCheckup(player);
             }
             default -> { }
         }
